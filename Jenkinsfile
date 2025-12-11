@@ -2,13 +2,17 @@ pipeline {
     agent any
 
     environment {
-        DEV_SERVER  = "ubuntu@13.205.29.147"
-        QA_SERVER   = "ubuntu@13.235.220.79"
-        PROD_SERVER = "ubuntu@3.6.97.178"
+        DEV_SERVER  = "ubuntu@13.126.34.112"
+        QA_SERVER   = "ubuntu@13.200.153.190"
+        PROD_SERVER = "ubuntu@13.204.97.226"
 
         APP_BASE_DIR = "/opt/app"
         APP_NAME     = "myapp"
         VERSION      = "${env.BUILD_NUMBER}"
+
+        DEV_PORT  = "8080"
+        QA_PORT   = "8080"
+        PROD_PORT = "8080"
     }
 
     stages {
@@ -47,8 +51,12 @@ scp -o StrictHostKeyChecking=no config/dev.env ${DEV_SERVER}:${APP_BASE_DIR}/cur
 ssh -o StrictHostKeyChecking=no ${DEV_SERVER} "
 pkill -f app.jar || true
 ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/current/app.jar
-nohup java -jar ${APP_BASE_DIR}/current/app.jar > ${APP_BASE_DIR}/current/dev.log 2>&1 &
+nohup java -jar ${APP_BASE_DIR}/current/app.jar --server.port=${DEV_PORT} > ${APP_BASE_DIR}/current/dev.log 2>&1 &
 "
+
+# HEALTH CHECK
+sleep 5
+curl -f http://${DEV_SERVER#*@}:${DEV_PORT}/health
 """
             }
         }
@@ -72,8 +80,12 @@ scp -o StrictHostKeyChecking=no config/qa.env ${QA_SERVER}:${APP_BASE_DIR}/curre
 ssh -o StrictHostKeyChecking=no ${QA_SERVER} "
 pkill -f app.jar || true
 ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/current/app.jar
-nohup java -jar ${APP_BASE_DIR}/current/app.jar > ${APP_BASE_DIR}/current/qa.log 2>&1 &
+nohup java -jar ${APP_BASE_DIR}/current/app.jar --server.port=${QA_PORT} > ${APP_BASE_DIR}/current/qa.log 2>&1 &
 "
+
+# HEALTH CHECK
+sleep 5
+curl -f http://${QA_SERVER#*@}:${QA_PORT}/health
 """
             }
         }
@@ -97,8 +109,12 @@ scp -o StrictHostKeyChecking=no config/prod.env ${PROD_SERVER}:${APP_BASE_DIR}/c
 ssh -o StrictHostKeyChecking=no ${PROD_SERVER} "
 pkill -f app.jar || true
 ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/current/app.jar
-nohup java -jar ${APP_BASE_DIR}/current/app.jar > ${APP_BASE_DIR}/current/prod.log 2>&1 &
+nohup java -jar ${APP_BASE_DIR}/current/app.jar --server.port=${PROD_PORT} > ${APP_BASE_DIR}/current/prod.log 2>&1 &
 "
+
+# HEALTH CHECK
+sleep 5
+curl -f http://${PROD_SERVER#*@}:${PROD_PORT}/health
 """
             }
         }
