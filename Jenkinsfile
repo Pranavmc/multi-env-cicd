@@ -15,7 +15,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: ''
+                    url: 'https://github.com/Pranavmc/multi-env-cicd.git'
             }
         }
 
@@ -103,3 +103,4 @@ pipeline {
         }
     }
 }
+
