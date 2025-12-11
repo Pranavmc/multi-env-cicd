@@ -42,7 +42,10 @@ cp target/*.jar artifacts/${APP_NAME}-${VERSION}.jar
 
         stage('Deploy to Dev') {
             steps {
-                sh """
+                script {
+                    def DEV_IP = DEV_SERVER.split("@")[1]
+
+                    sh """
 ARTIFACT=artifacts/${APP_NAME}-${VERSION}.jar
 
 scp -o StrictHostKeyChecking=no \$ARTIFACT ${DEV_SERVER}:${APP_BASE_DIR}/releases/
@@ -54,10 +57,10 @@ ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/curr
 nohup java -jar ${APP_BASE_DIR}/current/app.jar --server.port=${DEV_PORT} > ${APP_BASE_DIR}/current/dev.log 2>&1 &
 "
 
-# HEALTH CHECK
 sleep 5
-curl -f http://${DEV_SERVER#*@}:${DEV_PORT}/health
+curl -f http://${DEV_IP}:${DEV_PORT}/health
 """
+                }
             }
         }
 
@@ -71,7 +74,10 @@ curl -f http://${DEV_SERVER#*@}:${DEV_PORT}/health
 
         stage('Deploy to QA') {
             steps {
-                sh """
+                script {
+                    def QA_IP = QA_SERVER.split("@")[1]
+
+                    sh """
 ARTIFACT=artifacts/${APP_NAME}-${VERSION}.jar
 
 scp -o StrictHostKeyChecking=no \$ARTIFACT ${QA_SERVER}:${APP_BASE_DIR}/releases/
@@ -83,10 +89,10 @@ ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/curr
 nohup java -jar ${APP_BASE_DIR}/current/app.jar --server.port=${QA_PORT} > ${APP_BASE_DIR}/current/qa.log 2>&1 &
 "
 
-# HEALTH CHECK
 sleep 5
-curl -f http://${QA_SERVER#*@}:${QA_PORT}/health
+curl -f http://${QA_IP}:${QA_PORT}/health
 """
+                }
             }
         }
 
@@ -100,7 +106,10 @@ curl -f http://${QA_SERVER#*@}:${QA_PORT}/health
 
         stage('Deploy to Prod') {
             steps {
-                sh """
+                script {
+                    def PROD_IP = PROD_SERVER.split("@")[1]
+
+                    sh """
 ARTIFACT=artifacts/${APP_NAME}-${VERSION}.jar
 
 scp -o StrictHostKeyChecking=no \$ARTIFACT ${PROD_SERVER}:${APP_BASE_DIR}/releases/
@@ -112,10 +121,10 @@ ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/curr
 nohup java -jar ${APP_BASE_DIR}/current/app.jar --server.port=${PROD_PORT} > ${APP_BASE_DIR}/current/prod.log 2>&1 &
 "
 
-# HEALTH CHECK
 sleep 5
-curl -f http://${PROD_SERVER#*@}:${PROD_PORT}/health
+curl -f http://${PROD_IP}:${PROD_PORT}/health
 """
+                }
             }
         }
     }
