@@ -27,28 +27,28 @@ pipeline {
 
         stage('Package Artifact') {
             steps {
-                sh '''
+                sh """
                     mkdir -p artifacts
                     cp target/*.jar artifacts/${APP_NAME}-${VERSION}.jar
-                '''
+                """
                 archiveArtifacts artifacts: 'artifacts/*.jar', fingerprint: true
             }
         }
 
         stage('Deploy to Dev') {
             steps {
-                sh '''
+                sh """
                     ARTIFACT=artifacts/${APP_NAME}-${VERSION}.jar
                     
-                    scp -o StrictHostKeyChecking=no $ARTIFACT ${DEV_SERVER}:${APP_BASE_DIR}/releases/
+                    scp -o StrictHostKeyChecking=no \$ARTIFACT ${DEV_SERVER}:${APP_BASE_DIR}/releases/
                     scp -o StrictHostKeyChecking=no config/dev.env ${DEV_SERVER}:${APP_BASE_DIR}/current/.env
                     
-                    ssh -o StrictHostKeyChecking=no ${DEV_SERVER} "
-                        pkill -f 'app.jar' || true
+                    ssh -o StrictHostKeyChecking=no ${DEV_SERVER} '
+                        pkill -f "app.jar" || true
                         ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/current/app.jar
                         nohup java -jar ${APP_BASE_DIR}/current/app.jar > ${APP_BASE_DIR}/current/dev.log 2>&1 &
-                    "
-                '''
+                    '
+                """
             }
         }
 
@@ -62,18 +62,18 @@ pipeline {
 
         stage('Deploy to QA') {
             steps {
-                sh '''
+                sh """
                     ARTIFACT=artifacts/${APP_NAME}-${VERSION}.jar
 
-                    scp -o StrictHostKeyChecking=no $ARTIFACT ${QA_SERVER}:${APP_BASE_DIR}/releases/
+                    scp -o StrictHostKeyChecking=no \$ARTIFACT ${QA_SERVER}:${APP_BASE_DIR}/releases/
                     scp -o StrictHostKeyChecking=no config/qa.env ${QA_SERVER}:${APP_BASE_DIR}/current/.env
                     
-                    ssh -o StrictHostKeyChecking=no ${QA_SERVER} "
-                        pkill -f 'app.jar' || true
+                    ssh -o StrictHostKeyChecking=no ${QA_SERVER} '
+                        pkill -f "app.jar" || true
                         ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/current/app.jar
                         nohup java -jar ${APP_BASE_DIR}/current/app.jar > ${APP_BASE_DIR}/current/qa.log 2>&1 &
-                    "
-                '''
+                    '
+                """
             }
         }
 
@@ -87,20 +87,19 @@ pipeline {
 
         stage('Deploy to Prod') {
             steps {
-                sh '''
+                sh """
                     ARTIFACT=artifacts/${APP_NAME}-${VERSION}.jar
 
-                    scp -o StrictHostKeyChecking=no $ARTIFACT ${PROD_SERVER}:${APP_BASE_DIR}/releases/
+                    scp -o StrictHostKeyChecking=no \$ARTIFACT ${PROD_SERVER}:${APP_BASE_DIR}/releases/
                     scp -o StrictHostKeyChecking=no config/prod.env ${PROD_SERVER}:${APP_BASE_DIR}/current/.env
                     
-                    ssh -o StrictHostKeyChecking=no ${PROD_SERVER} "
-                        pkill -f 'app.jar' || true
+                    ssh -o StrictHostKeyChecking=no ${PROD_SERVER} '
+                        pkill -f "app.jar" || true
                         ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/current/app.jar
                         nohup java -jar ${APP_BASE_DIR}/current/app.jar > ${APP_BASE_DIR}/current/prod.log 2>&1 &
-                    "
-                '''
+                    '
+                """
             }
         }
     }
 }
-
