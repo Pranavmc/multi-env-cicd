@@ -19,8 +19,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/Pranavmc/multi-env-cicd.git'
+                git branch: 'main', url: 'https://github.com/Pranavmc/multi-env-cicd.git'
             }
         }
 
@@ -51,11 +50,9 @@ pipeline {
                         scp -o StrictHostKeyChecking=no \$ARTIFACT ${DEV_SERVER}:${APP_BASE_DIR}/releases/
                         scp -o StrictHostKeyChecking=no config/dev.env ${DEV_SERVER}:${APP_BASE_DIR}/current/.env
 
-                        ssh -o StrictHostKeyChecking=no ${DEV_SERVER} "
-                            pkill -f app.jar || true
-                            ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/current/app.jar
-                            nohup java -jar ${APP_BASE_DIR}/current/app.jar --server.port=${DEV_PORT} > ${APP_BASE_DIR}/current/dev.log 2>&1 &
-                        "
+                        ssh -o StrictHostKeyChecking=no ${DEV_SERVER} "pkill -f app.jar || true && \
+                        ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/current/app.jar && \
+                        nohup java -jar ${APP_BASE_DIR}/current/app.jar --server.port=${DEV_PORT} > ${APP_BASE_DIR}/current/dev.log 2>&1 &"
 
                         sleep 5
                         curl -f http://${DEV_IP}:${DEV_PORT}/health
@@ -83,11 +80,9 @@ pipeline {
                         scp -o StrictHostKeyChecking=no \$ARTIFACT ${QA_SERVER}:${APP_BASE_DIR}/releases/
                         scp -o StrictHostKeyChecking=no config/qa.env ${QA_SERVER}:${APP_BASE_DIR}/current/.env
 
-                        ssh -o StrictHostKeyChecking=no ${QA_SERVER} "
-                            pkill -f app.jar || true
-                            ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/current/app.jar
-                            nohup java -jar ${APP_BASE_DIR}/current/app.jar --server.port=${QA_PORT} > ${APP_BASE_DIR}/current/qa.log 2>&1 &
-                        "
+                        ssh -o StrictHostKeyChecking=no ${QA_SERVER} "pkill -f app.jar || true && \
+                        ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/current/app.jar && \
+                        nohup java -jar ${APP_BASE_DIR}/current/app.jar --server.port=${QA_PORT} > ${APP_BASE_DIR}/current/qa.log 2>&1 &"
 
                         sleep 5
                         curl -f http://${QA_IP}:${QA_PORT}/health
@@ -115,11 +110,9 @@ pipeline {
                         scp -o StrictHostKeyChecking=no \$ARTIFACT ${PROD_SERVER}:${APP_BASE_DIR}/releases/
                         scp -o StrictHostKeyChecking=no config/prod.env ${PROD_SERVER}:${APP_BASE_DIR}/current/.env
 
-                        ssh -o StrictHostKeyChecking=no ${PROD_SERVER} "
-                            pkill -f app.jar || true
-                            ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/current/app.jar
-                            nohup java -jar ${APP_BASE_DIR}/current/app.jar --server.port=${PROD_PORT} > ${APP_BASE_DIR}/current/prod.log 2>&1 &
-                        "
+                        ssh -o StrictHostKeyChecking=no ${PROD_SERVER} "pkill -f app.jar || true && \
+                        ln -sfn ${APP_BASE_DIR}/releases/${APP_NAME}-${VERSION}.jar ${APP_BASE_DIR}/current/app.jar && \
+                        nohup java -jar ${APP_BASE_DIR}/current/app.jar --server.port=${PROD_PORT} > ${APP_BASE_DIR}/current/prod.log 2>&1 &"
 
                         sleep 5
                         curl -f http://${PROD_IP}:${PROD_PORT}/health
